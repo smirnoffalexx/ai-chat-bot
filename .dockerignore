@@ -1,0 +1,21 @@
+# Secrets & local config
+config.json
+.env
+
+# Build output
+bin/
+ai-chat-bot
+*.exe
+
+# VCS / meta / docs
+.git/
+.gitignore
+.dockerignore
+Dockerfile
+Makefile
+README.md
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/

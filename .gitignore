@@ -1,0 +1,13 @@
+# Secrets & local config
+config.json
+.env
+
+# Build output
+/bin/
+/ai-chat-bot
+*.exe
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
