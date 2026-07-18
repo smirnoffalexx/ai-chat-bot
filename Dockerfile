@@ -17,7 +17,7 @@ RUN go build -trimpath -ldflags="-s -w" -o /out/bot ./cmd/bot
 # --- runtime stage ---
 FROM alpine:latest
 
-# CA certificates for outbound HTTPS to the Telegram and OpenAI APIs.
+# CA certificates for outbound HTTPS to the Telegram and Anthropic APIs.
 RUN apk add --no-cache ca-certificates tzdata \
     && adduser -D -u 10001 app
 
@@ -29,7 +29,7 @@ USER app
 # All configuration comes from environment variables. On Railway, set them in
 # the service's Variables tab. Locally:
 #   docker run --rm \
-#     -e TELEGRAM_TOKEN=... -e OPENAI_API_KEY=... -e ALLOWED_USER_IDS=123456789 \
+#     -e TELEGRAM_TOKEN=... -e ANTHROPIC_API_KEY=... -e ALLOWED_USER_IDS=123456789 \
 #     ai-chat-bot
 # (or: docker run --rm --env-file .env ai-chat-bot)
 ENTRYPOINT ["/app/bot"]

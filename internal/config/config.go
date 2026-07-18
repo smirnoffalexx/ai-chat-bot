@@ -13,9 +13,9 @@ import (
 
 // Config holds all runtime configuration, loaded from the environment.
 type Config struct {
-	Telegram TelegramConfig
-	OpenAI   OpenAIConfig
-	Agent    AgentConfig
+	Telegram  TelegramConfig
+	Anthropic AnthropicConfig
+	Agent     AgentConfig
 
 	// AllowedUserIDs is the whitelist of Telegram user IDs permitted to chat.
 	AllowedUserIDs []domain.UserID
@@ -28,12 +28,11 @@ type TelegramConfig struct {
 	PollTimeoutSeconds int
 }
 
-type OpenAIConfig struct {
-	APIKey      string
-	BaseURL     string
-	Model       string
-	Temperature float64
-	MaxTokens   int
+type AnthropicConfig struct {
+	APIKey    string
+	BaseURL   string
+	Model     string
+	MaxTokens int
 }
 
 type AgentConfig struct {
@@ -53,12 +52,11 @@ func Load() *Config {
 			Token:              env("TELEGRAM_TOKEN", ""),
 			PollTimeoutSeconds: envInt("TELEGRAM_POLL_TIMEOUT_SECONDS", 30),
 		},
-		OpenAI: OpenAIConfig{
-			APIKey:      env("OPENAI_API_KEY", ""),
-			BaseURL:     env("OPENAI_BASE_URL", "https://api.openai.com/v1"),
-			Model:       env("OPENAI_MODEL", "gpt-4o"),
-			Temperature: envFloat("OPENAI_TEMPERATURE", 0),
-			MaxTokens:   envInt("OPENAI_MAX_TOKENS", 2000),
+		Anthropic: AnthropicConfig{
+			APIKey:    env("ANTHROPIC_API_KEY", ""),
+			BaseURL:   env("ANTHROPIC_BASE_URL", "https://api.anthropic.com"),
+			Model:     env("ANTHROPIC_MODEL", "claude-opus-4-8"),
+			MaxTokens: envInt("ANTHROPIC_MAX_TOKENS", 2000),
 		},
 		Agent: AgentConfig{
 			SystemPrompt:    env("AGENT_SYSTEM_PROMPT", defaultSystemPrompt),
@@ -73,8 +71,8 @@ func Load() *Config {
 	if cfg.Telegram.Token == "" {
 		log.Fatal("TELEGRAM_TOKEN must be set")
 	}
-	if cfg.OpenAI.APIKey == "" {
-		log.Fatal("OPENAI_API_KEY must be set")
+	if cfg.Anthropic.APIKey == "" {
+		log.Fatal("ANTHROPIC_API_KEY must be set")
 	}
 	if len(cfg.AllowedUserIDs) == 0 {
 		log.Fatal("ALLOWED_USER_IDS must list at least one Telegram user id")
@@ -93,15 +91,6 @@ func envInt(key string, fallback int) int {
 	if v, ok := os.LookupEnv(key); ok && v != "" {
 		if n, err := strconv.Atoi(v); err == nil {
 			return n
-		}
-	}
-	return fallback
-}
-
-func envFloat(key string, fallback float64) float64 {
-	if v, ok := os.LookupEnv(key); ok && v != "" {
-		if f, err := strconv.ParseFloat(v, 64); err == nil {
-			return f
 		}
 	}
 	return fallback

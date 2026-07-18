@@ -5,7 +5,7 @@
 //	domain   – pure entities (no dependencies)
 //	port     – interfaces the core depends on
 //	usecase  – application logic: agent loop, handler, worker pool
-//	adapter  – implementations: telegram, openai, in-memory storage
+//	adapter  – implementations: telegram, anthropic, in-memory storage
 //	auth     – user whitelist
 //
 // Dependencies point inward only; main is the composition root that wires the
@@ -20,8 +20,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/smirnoffalexx/ai-chat-bot/internal/adapter/anthropic"
 	"github.com/smirnoffalexx/ai-chat-bot/internal/adapter/memory"
-	"github.com/smirnoffalexx/ai-chat-bot/internal/adapter/openai"
 	"github.com/smirnoffalexx/ai-chat-bot/internal/adapter/telegram"
 	"github.com/smirnoffalexx/ai-chat-bot/internal/agent/tools"
 	"github.com/smirnoffalexx/ai-chat-bot/internal/auth"
@@ -36,12 +36,11 @@ func main() {
 	cfg := config.Load()
 
 	// --- adapters ---
-	llm := openai.New(openai.Config{
-		APIKey:      cfg.OpenAI.APIKey,
-		BaseURL:     cfg.OpenAI.BaseURL,
-		Model:       cfg.OpenAI.Model,
-		Temperature: cfg.OpenAI.Temperature,
-		MaxTokens:   cfg.OpenAI.MaxTokens,
+	llm := anthropic.New(anthropic.Config{
+		APIKey:    cfg.Anthropic.APIKey,
+		BaseURL:   cfg.Anthropic.BaseURL,
+		Model:     cfg.Anthropic.Model,
+		MaxTokens: cfg.Anthropic.MaxTokens,
 	})
 	tg := telegram.New(cfg.Telegram.Token, cfg.Telegram.PollTimeoutSeconds, log)
 	queue := memory.NewQueue(256)
@@ -74,7 +73,7 @@ func main() {
 	go workers.Start(ctx, cfg.Workers)
 
 	log.Info("bot started",
-		"model", cfg.OpenAI.Model,
+		"model", cfg.Anthropic.Model,
 		"workers", cfg.Workers,
 		"allowed_users", len(cfg.AllowedUserIDs),
 	)

@@ -12,7 +12,7 @@ is the standard library.
 ## How it works
 
 ```
-Telegram user ──▶ Poller ──▶ Handler ──▶ Queue ──▶ Worker ──▶ Agent ──▶ OpenAI
+Telegram user ──▶ Poller ──▶ Handler ──▶ Queue ──▶ Worker ──▶ Agent ──▶ Claude
                     (authorize + enqueue)         (background)  (tool loop)
                                                        │
                               reply / "🛠 working…" ◀──┘
@@ -38,11 +38,11 @@ Telegram user ──▶ Poller ──▶ Handler ──▶ Queue ──▶ Worke
 | domain     | `internal/domain`          | Pure entities (User, Task, Message). No deps.    |
 | port       | `internal/port`            | Interfaces the core depends on.                  |
 | usecase    | `internal/usecase`         | Agent loop, request handler, worker pool.        |
-| adapter    | `internal/adapter/*`       | Telegram, OpenAI, in-memory queue/repo/history.  |
+| adapter    | `internal/adapter/*`       | Telegram, Anthropic, in-memory queue/repo/history.|
 | auth       | `internal/auth`            | User whitelist.                                  |
 | main       | `cmd/bot`                  | Composition root (wires adapters into use cases).|
 
-Dependencies point inward only, so swapping OpenAI for another LLM, or the
+Dependencies point inward only, so swapping Anthropic for another LLM, or the
 in-memory queue for Redis, means writing one new adapter — no core changes.
 
 ## Setup
@@ -54,16 +54,16 @@ Message [@BotFather](https://t.me/BotFather), run `/newbot`, and copy the token.
 Message [@userinfobot](https://t.me/userinfobot); it replies with your numeric ID.
 Put it (and any other allowed users) in `allowed_user_ids`.
 
-### 3. Get an OpenAI API key
-> **Note:** a ChatGPT Pro subscription does **not** include API access. The API
-> is billed separately. Create a key at <https://platform.openai.com/api-keys>.
+### 3. Get an Anthropic API key
+> **Note:** a Claude.ai subscription does **not** include API access. The API
+> is billed separately. Create a key at <https://console.anthropic.com/settings/keys>.
 
 ### 4. Configure
 All configuration is via **environment variables**. For local development,
 copy the example and fill it in:
 ```bash
 cp .env.example .env
-# edit .env — set TELEGRAM_TOKEN, OPENAI_API_KEY, ALLOWED_USER_IDS
+# edit .env — set TELEGRAM_TOKEN, ANTHROPIC_API_KEY, ALLOWED_USER_IDS
 ```
 On **Railway** (or similar), don't ship a file — set the same variables in the
 service's **Variables** tab. Real platform env vars always win over `.env`.
@@ -82,12 +82,11 @@ Set via `.env` (local) or the platform's env vars (hosted).
 | Env var                          | Default                     | Meaning                                    |
 |----------------------------------|-----------------------------|--------------------------------------------|
 | `TELEGRAM_TOKEN`                 | — **(required)**            | Bot token from BotFather.                  |
-| `OPENAI_API_KEY`                 | — **(required)**            | OpenAI API key.                            |
+| `ANTHROPIC_API_KEY`              | — **(required)**            | Anthropic API key.                         |
 | `ALLOWED_USER_IDS`               | — **(required)**            | Comma-separated Telegram user IDs.         |
-| `OPENAI_BASE_URL`                | `https://api.openai.com/v1` | Override for Azure/proxies/compatible APIs.|
-| `OPENAI_MODEL`                   | `gpt-4o`                    | Model name.                                |
-| `OPENAI_TEMPERATURE`             | `0`                         | Sampling temperature.                      |
-| `OPENAI_MAX_TOKENS`              | `2000`                      | Max completion tokens.                     |
+| `ANTHROPIC_BASE_URL`             | `https://api.anthropic.com` | Override for proxies/gateways.             |
+| `ANTHROPIC_MODEL`                | `claude-opus-4-8`           | Model name.                                |
+| `ANTHROPIC_MAX_TOKENS`           | `2000`                      | Max response tokens.                       |
 | `TELEGRAM_POLL_TIMEOUT_SECONDS`  | `30`                        | Long-poll timeout.                         |
 | `AGENT_SYSTEM_PROMPT`            | built-in                    | Assistant persona/instructions.            |
 | `AGENT_MAX_STEPS`                | `8`                         | Max tool-call rounds per task.             |
